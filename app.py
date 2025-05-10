@@ -9,12 +9,9 @@ from nltk.stem import WordNetLemmatizer
 from nltk.corpus import stopwords
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, confusion_matrix, roc_curve, auc, classification_report
 import joblib
-import os
 import base64
 from io import BytesIO
-import time
 try:
     from wordcloud import WordCloud
     WORDCLOUD_AVAILABLE = True
@@ -79,8 +76,8 @@ st.markdown("""
         padding-bottom: 10px;
     }
     .stTabs [aria-selected="true"] {
-        background-color: #1E3A8A !important;
-        color: white !important;
+        background-color: #1E3A8A;
+        color: white;
     }
     .metric-card {
         background-color: #F0F7FF;
@@ -143,9 +140,9 @@ def preprocess_text(text, remove_stopwords=True):
     
     # Remove stopwords and lemmatize
     if nltk_download_success and remove_stopwords:
-        words = [lemmatizer.lemmatize(word) for word in words if word not in stop_words* 1.5rem !important;
-        }
-        words = [word for word in words if len(word) > 1]
+        words = [lemmatizer.lemmatize(word) for word in words if word not in stop_words and len(word) > 1]
+    else:
+        words = [lemmatizer.lemmatize(word) for word in words if len(word) > 1] if nltk_download_success else words
     
     return ' '.join(words)
 
@@ -191,7 +188,6 @@ def predict_news(text, model, vectorizer):
 @st.cache_data
 def get_example_dataset():
     try:
-        # Fallback synthetic dataset
         data = {
             'title': [
                 'Scientists discover new species of dinosaur',
@@ -231,24 +227,20 @@ def get_example_dataset():
 @st.cache_resource
 def load_pretrained_model():
     try:
-        # Initialize and train a simple model with example data
         df = get_example_dataset()
         if df.empty:
             raise ValueError("Failed to load example dataset for model training")
         
-        # Prepare data
         X_text = [preprocess_text(text) for text in df['text']]
         y = np.array([1 if label.lower() == 'fake' else 0 for label in df['label']])
         
-        # Create and fit vectorizer
         vectorizer = TfidfVectorizer(max_features=5000, ngram_range=(1, 2))
         X = vectorizer.fit_transform(X_text)
         
-        # Train model
         model = LogisticRegression(C=1.0, solver='liblinear', max_iter=1000)
         model.fit(X, y)
         
-        return CliftonStrengths Themes model, vectorizer
+        return model, vectorizer
     except Exception as e:
         st.error(f"Error loading pre-trained model: {str(e)}")
         return None, None
@@ -272,31 +264,22 @@ def analyze_text_credibility(text):
     if not text or not isinstance(text, str):
         return {}, []
     
-    # Number of sentences
     sentences = re.split(r'[.!?]+', text)
     sentences = [s for s in sentences if s.strip()]
     
-    # Word count
     words = text.split()
     
-    # Average sentence length
     avg_sentence_len = len(words) / len(sentences) if sentences else 0
     
-    # Capitalized words (excluding first words of sentences)
     caps_words = sum(1 for word in words if word.isupper() and len(word) > 1)
     caps_ratio = caps_words / len(words) if words else 0
     
-    # Exclamation marks
     exclamation_count = text.count('!')
-    
-    # Question marks
     question_count = text.count('?')
     
-    # URLs
     url_pattern = re.compile(r'https?://\S+|www\.\S+')
     url_count = len(url_pattern.findall(text))
     
-    # Create credibility metrics
     metrics = {
         'Word Count': len(words),
         'Sentence Count': len(sentences),
@@ -308,7 +291,6 @@ def analyze_text_credibility(text):
         'URLs': url_count
     }
     
-    # Create risk factors
     risk_factors = []
     if avg_sentence_len > 25:
         risk_factors.append("Very long sentences (may indicate complex or convoluted arguments)")
@@ -329,7 +311,7 @@ st.markdown('<h1 class="main-header">📰 Fake News Detection System</h1>', unsa
 # Load pre-trained model
 model, vectorizer = load_pretrained_model()
 
-if model is None赴 or vectorizer is None:
+if model is None or vectorizer is None:
     st.error("Failed to load the model. Some features may not work.")
     st.stop()
 
@@ -344,7 +326,6 @@ tabs = st.tabs([
 with tabs[0]:  # News Analyzer
     st.markdown('<h2 class="subheader">News Text Analysis</h2>', unsafe_allow_html=True)
     
-    # User input
     news_text = st.text_area(
         "Paste news article text here for analysis:",
         height=200,
@@ -357,7 +338,6 @@ with tabs[0]:  # News Analyzer
         analyze_btn = st.button("Analyze Text", type="primary", use_container_width=True)
     
     with col2:
-        # Example selector
         examples = ["Select an example...", "Climate Change Report", "Celebrity Scandal", "Medical Breakthrough", "Political Allegations"]
         selected_example = st.selectbox("Or try an example:", examples)
         
@@ -377,20 +357,14 @@ with tabs[0]:  # News Analyzer
             st.error("Please enter valid text for analysis.")
         else:
             with st.spinner("Analyzing text..."):
-                # Extract text features
                 features = extract_text_features(news_text)
-                
-                # Analyze credibility
                 metrics, risk_factors = analyze_text_credibility(news_text)
-                
-                # Make prediction
                 prediction, probability, clean_text = predict_news(news_text, model, vectorizer)
                 
                 if prediction is None:
                     st.error("Failed to process the text. Please try again.")
                     st.stop()
                 
-                # Display results
                 col1, col2 = st.columns([3, 2])
                 
                 with col1:
@@ -445,7 +419,6 @@ with tabs[0]:  # News Analyzer
                     else:
                         st.info("Word cloud visualization unavailable. Install 'wordcloud' package or ensure valid text input.")
                 
-                # Show processing details
                 with st.expander("See text processing details"):
                     st.markdown("#### Original Text")
                     st.write(news_text)
@@ -467,7 +440,6 @@ with tabs[0]:  # News Analyzer
 with tabs[1]:  # Dataset Explorer
     st.markdown('<h2 class="subheader">Dataset Explorer</h2>', unsafe_allow_html=True)
     
-    # File uploader or use example dataset
     st.markdown("Upload your own fake news dataset or use our example dataset:")
     
     col1, col2 = st.columns(2)
@@ -499,12 +471,10 @@ with tabs[1]:  # Dataset Explorer
             st.error("Failed to load example dataset.")
     
     if df is not None:
-        # Add additional features for analysis
         if 'title' in df.columns:
             df['title_length'] = df['title'].apply(lambda x: len(str(x)))
         df['text_length'] = df['text'].apply(lambda x: len(str(x)))
         
-        # Create tabs for different analyses
         data_tabs = st.tabs(["Dataset Overview", "Visualizations", "Text Analysis"])
         
         with data_tabs[0]:  # Dataset Overview
@@ -736,7 +706,6 @@ with tabs[2]:  # Batch Processing
                     progress_bar = st.progress(0)
                     status_text = st.empty()
                     
-                    # Vectorized preprocessing
                     batch_df['clean_text'] = batch_df['text'].apply(lambda x: preprocess_text(str(x)))
                     text_vectors = vectorizer.transform(batch_df['clean_text'])
                     predictions = model.predict(text_vectors)
