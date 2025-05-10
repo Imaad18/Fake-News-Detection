@@ -15,6 +15,11 @@ import os
 import base64
 from io import BytesIO
 import time
+try:
+    from wordcloud import WordCloud
+    WORDCLOUD_AVAILABLE = True
+except ImportError:
+    WORDCLOUD_AVAILABLE = False
 
 # Set page config
 st.set_page_config(
@@ -34,11 +39,12 @@ def download_nltk_resources():
         nltk.download('omw-1.4', quiet=True)
         return True
     except Exception as e:
-        st.error(f"Failed to download NLTK resources: {str(e)}")
+        st.warning(f"Failed to download NLTK resources: {str(e)}. Some features may be limited.")
         return False
 
 # Initialize lemmatizer and stopwords
-if download_nltk_resources():
+nltk_download_success = download_nltk_resources()
+if nltk_download_success:
     lemmatizer = WordNetLemmatizer()
     stop_words = set(stopwords.words('english'))
 else:
@@ -108,24 +114,38 @@ st.markdown("""
     .stProgress > div > div > div > div {
         background-color: #1E3A8A;
     }
+    .btn {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        background-color: #1E3A8A;
+        color: white;
+        text-decoration: none;
+        border-radius: 0.25rem;
+        margin-top: 0.5rem;
+    }
+    .btn:hover {
+        background-color: #3B82F6;
+    }
 </style>
 """, unsafe_allow_html=True)
 
 # Preprocess text: remove special characters, stopwords, and lemmatize
 def preprocess_text(text, remove_stopwords=True):
+    if not text or not isinstance(text, str):
+        return ""
     # Basic cleaning
-    text = re.sub(r'\W', ' ', str(text))  # remove non-word characters
-    text = re.sub(r'\s+', ' ', text)      # replace multiple spaces with one
-    text = text.lower().strip()           # convert to lowercase and trim
+    text = re.sub(r'\W', ' ', text)  # remove non-word characters
+    text = re.sub(r'\s+', ' ', text)  # replace multiple spaces with one
+    text = text.lower().strip()       # convert to lowercase and trim
     
     # Tokenize
     words = text.split()
     
     # Remove stopwords and lemmatize
-    if remove_stopwords:
-        words = [lemmatizer.lemmatize(word) for word in words if word not in stop_words and len(word) > 1]
-    else:
-        words = [lemmatizer.lemmatize(word) for word in words if len(word) > 1]
+    if nltk_download_success and remove_stopwords:
+        words = [lemmatizer.lemmatize(word) for word in words if word not in stop_words* 1.5rem !important;
+        }
+        words = [word for word in words if len(word) > 1]
     
     return ' '.join(words)
 
@@ -138,27 +158,25 @@ def extract_text_features(text):
     features['word_count'] = len(words)
     
     # Average word length
-    if len(words) > 0:
-        features['avg_word_length'] = sum(len(word) for word in words) / len(words)
-    else:
-        features['avg_word_length'] = 0
+    features['avg_word_length'] = sum(len(word) for word in words) / len(words) if words else 0
     
     # Sentence count
     sentences = re.split(r'[.!?]+', text)
-    features['sentence_count'] = len([s for s in sentences if len(s.strip()) > 0])
+    features['sentence_count'] = len([s for s in sentences if s.strip()])
     
     # Average sentence length
-    if features['sentence_count'] > 0:
-        features['avg_sentence_length'] = features['word_count'] / features['sentence_count']
-    else:
-        features['avg_sentence_length'] = 0
+    features['avg_sentence_length'] = features['word_count'] / features['sentence_count'] if features['sentence_count'] > 0 else 0
     
     return features
 
 # Function to predict on new text
 def predict_news(text, model, vectorizer):
+    if not text or not isinstance(text, str):
+        return None, None, ""
     # Preprocess the text
     clean_text = preprocess_text(text)
+    if not clean_text:
+        return None, None, ""
     
     # Transform the text using the vectorizer
     text_vector = vectorizer.transform([clean_text])
@@ -172,11 +190,8 @@ def predict_news(text, model, vectorizer):
 # Function to get example dataset
 @st.cache_data
 def get_example_dataset():
-    # URL for the dataset
-    url = "https://raw.githubusercontent.com/KailasMahavarkar/interview-questions/main/land-data.csv"
     try:
-        df = pd.read_csv(url)
-        # Create a simple fake news dataset
+        # Fallback synthetic dataset
         data = {
             'title': [
                 'Scientists discover new species of dinosaur',
@@ -191,26 +206,26 @@ def get_example_dataset():
                 'Local restaurant closed for health violations'
             ],
             'text': [
-                'Paleontologists from Oxford University have discovered a new species of dinosaur in Argentina. The fossils indicate it was a herbivore that lived approximately 80 million years ago.',
-                'Government officials have confirmed contact with extraterrestrial beings from Alpha Centauri. The aliens are reportedly peaceful and wish to share advanced technology.',
-                'A controversial new study claims that chocolate contains more antioxidants and beneficial compounds than most vegetables. Health experts are skeptical of these findings.',
-                'Research published in the Journal of Internal Medicine suggests that drinking 3-4 cups of coffee daily is associated with a 15% reduction in all-cause mortality.',
-                'Climate scientists report that global average temperatures in April were the highest ever recorded for that month, continuing a concerning warming trend.',
-                'A hiker in Yellowstone National Park claims to have captured clear footage of Bigfoot. Wildlife experts dispute the claim, suggesting it's likely a bear.',
-                'A group of doctors is recommending that people eliminate all forms of sugar from their diet, claiming it's the only way to prevent diabetes and obesity.',
-                'NASA's rover has confirmed the presence of liquid water on the Martian surface, a significant discovery that increases the possibility of finding evidence of life.',
-                'Researchers using ground-penetrating radar have allegedly discovered a massive pyramid structure beneath Antarctic ice, suggesting advanced ancient civilizations.',
-                'Health inspectors found numerous violations including rodent infestations and improper food storage at popular local restaurant "Tasty Bites." The establishment will remain closed until issues are resolved.'
+                'Paleontologists from Oxford University have discovered a new species of dinosaur in Argentina...',
+                'Government officials have confirmed contact with extraterrestrial beings from Alpha Centauri...',
+                'A controversial new study claims that chocolate contains more antioxidants...',
+                'Research published in the Journal of Internal Medicine suggests that drinking 3-4 cups of coffee...',
+                'Climate scientists report that global average temperatures in April were the highest ever recorded...',
+                'A hiker in Yellowstone National Park claims to have captured clear footage of Bigfoot...',
+                'A group of doctors is recommending that people eliminate all forms of sugar from their diet...',
+                'NASA’s rover has confirmed the presence of liquid water on the Martian surface...',
+                'Researchers using ground-penetrating radar have allegedly discovered a massive pyramid structure...',
+                'Health inspectors found numerous violations including rodent infestations...'
             ],
             'label': ['true', 'fake', 'fake', 'true', 'true', 'fake', 'fake', 'true', 'fake', 'true'],
-            'date': pd.date_range(start='1/1/2023', periods=10).tolist(),
+            'date': pd.date_range(start='2023-01-01', periods=10).tolist(),
             'category': ['Science', 'Politics', 'Health', 'Health', 'Environment', 'Entertainment', 'Health', 'Science', 'History', 'Local']
         }
-        example_df = pd.DataFrame(data)
-        return example_df
+        df = pd.DataFrame(data)
+        return df
     except Exception as e:
         st.error(f"Error loading example dataset: {str(e)}")
-        return None
+        return pd.DataFrame()
 
 # Function to load pre-trained model
 @st.cache_resource
@@ -218,6 +233,8 @@ def load_pretrained_model():
     try:
         # Initialize and train a simple model with example data
         df = get_example_dataset()
+        if df.empty:
+            raise ValueError("Failed to load example dataset for model training")
         
         # Prepare data
         X_text = [preprocess_text(text) for text in df['text']]
@@ -231,7 +248,7 @@ def load_pretrained_model():
         model = LogisticRegression(C=1.0, solver='liblinear', max_iter=1000)
         model.fit(X, y)
         
-        return model, vectorizer
+        return CliftonStrengths Themes model, vectorizer
     except Exception as e:
         st.error(f"Error loading pre-trained model: {str(e)}")
         return None, None
@@ -240,8 +257,7 @@ def load_pretrained_model():
 def get_download_link(df, filename, text):
     csv = df.to_csv(index=False)
     b64 = base64.b64encode(csv.encode()).decode()
-    href = f'<a href="data:file/csv;base64,{b64}" download="{filename}" class="btn">{text}</a>'
-    return href
+    return f'<a href="data:file/csv;base64,{b64}" download="{filename}" class="btn">{text}</a>'
 
 # Function to create a downloadable plot
 def get_figure_download_link(fig, filename="plot.png", text="Download Plot"):
@@ -249,24 +265,26 @@ def get_figure_download_link(fig, filename="plot.png", text="Download Plot"):
     fig.savefig(buffer, format="png", dpi=300, bbox_inches="tight")
     buffer.seek(0)
     b64 = base64.b64encode(buffer.read()).decode()
-    href = f'<a href="data:image/png;base64,{b64}" download="{filename}" class="btn">{text}</a>'
-    return href
+    return f'<a href="data:image/png;base64,{b64}" download="{filename}" class="btn">{text}</a>'
 
 # Function to analyze text sentiment and credibility
 def analyze_text_credibility(text):
+    if not text or not isinstance(text, str):
+        return {}, []
+    
     # Number of sentences
     sentences = re.split(r'[.!?]+', text)
-    sentences = [s for s in sentences if len(s.strip()) > 0]
+    sentences = [s for s in sentences if s.strip()]
     
     # Word count
     words = text.split()
     
     # Average sentence length
-    avg_sentence_len = len(words) / len(sentences) if len(sentences) > 0 else 0
+    avg_sentence_len = len(words) / len(sentences) if sentences else 0
     
     # Capitalized words (excluding first words of sentences)
     caps_words = sum(1 for word in words if word.isupper() and len(word) > 1)
-    caps_ratio = caps_words / len(words) if len(words) > 0 else 0
+    caps_ratio = caps_words / len(words) if words else 0
     
     # Exclamation marks
     exclamation_count = text.count('!')
@@ -294,7 +312,7 @@ def analyze_text_credibility(text):
     risk_factors = []
     if avg_sentence_len > 25:
         risk_factors.append("Very long sentences (may indicate complex or convoluted arguments)")
-    if avg_sentence_len < 10:
+    if avg_sentence_len < 10 and avg_sentence_len > 0:
         risk_factors.append("Very short sentences (may indicate simplistic arguments)")
     if caps_ratio > 0.1:
         risk_factors.append("Excessive use of ALL CAPS (may be attempting to provoke emotion)")
@@ -310,6 +328,10 @@ st.markdown('<h1 class="main-header">📰 Fake News Detection System</h1>', unsa
 
 # Load pre-trained model
 model, vectorizer = load_pretrained_model()
+
+if model is None赴 or vectorizer is None:
+    st.error("Failed to load the model. Some features may not work.")
+    st.stop()
 
 # Create tabs
 tabs = st.tabs([
@@ -340,10 +362,10 @@ with tabs[0]:  # News Analyzer
         selected_example = st.selectbox("Or try an example:", examples)
         
         example_texts = {
-            "Climate Change Report": "New scientific research confirms that global temperatures have risen by 1.1°C since pre-industrial times. The study, published in Nature Climate Science, analyzed data from over 3,000 weather stations worldwide and found that the rate of warming has accelerated in the past decade. Lead researcher Dr. Emily Chen stated that immediate action is needed to prevent catastrophic impacts.",
-            "Celebrity Scandal": "SHOCKING NEWS!!! Famous actor caught in MASSIVE SCANDAL!! Anonymous sources claim the A-list celebrity has been LYING to fans for YEARS! The star's representatives REFUSE to comment on these allegations!!! Is this the END of their career?? Share this BREAKING story now!!!",
-            "Medical Breakthrough": "Scientists at Stanford University have developed a new treatment for Alzheimer's disease that shows promise in early clinical trials. The therapy, which targets protein aggregates in the brain, improved cognitive function in 68% of participants. However, researchers caution that larger studies are needed before the treatment can be approved for general use.",
-            "Political Allegations": "CORRUPT POLITICIAN EXPOSED! Secret documents reveal the senator has been accepting illegal donations for years! The mainstream media is COVERING IT UP! They don't want you to know the TRUTH! Wake up, people!!! This is just the tip of the iceberg!!!"
+            "Climate Change Report": "New scientific research confirms that global temperatures have risen by 1.1°C since pre-industrial times...",
+            "Celebrity Scandal": "SHOCKING NEWS!!! Famous actor caught in MASSIVE SCANDAL!! Anonymous sources claim...",
+            "Medical Breakthrough": "Scientists at Stanford University have developed a new treatment for Alzheimer’s disease...",
+            "Political Allegations": "CORRUPT POLITICIAN EXPOSED! Secret documents reveal the senator has been accepting illegal donations..."
         }
         
         if selected_example != "Select an example...":
@@ -351,92 +373,96 @@ with tabs[0]:  # News Analyzer
             analyze_btn = True
     
     if analyze_btn and news_text:
-        with st.spinner("Analyzing text..."):
-            # Extract text features
-            features = extract_text_features(news_text)
-            
-            # Analyze credibility
-            metrics, risk_factors = analyze_text_credibility(news_text)
-            
-            # Make prediction
-            prediction, probability, clean_text = predict_news(news_text, model, vectorizer)
-            
-            # Display results
-            col1, col2 = st.columns([3, 2])
-            
-            with col1:
-                st.markdown('<h3 class="subheader">Prediction Result</h3>', unsafe_allow_html=True)
+        if not news_text.strip():
+            st.error("Please enter valid text for analysis.")
+        else:
+            with st.spinner("Analyzing text..."):
+                # Extract text features
+                features = extract_text_features(news_text)
                 
-                if prediction == 1:
-                    st.markdown(f"""
-                    <div style="display: flex; align-items: center; margin-bottom: 1rem;">
-                        <div style="font-size: 3rem; margin-right: 1rem;">🚨</div>
-                        <div>
-                            <div style="font-size: 1.8rem; font-weight: bold; color: #B91C1C;">Likely Fake News</div>
-                            <div style="font-size: 1rem; color: #4B5563;">Confidence: {probability:.1%}</div>
-                        </div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                else:
-                    st.markdown(f"""
-                    <div style="display: flex; align-items: center; margin-bottom: 1rem;">
-                        <div style="font-size: 3rem; margin-right: 1rem;">✅</div>
-                        <div>
-                            <div style="font-size: 1.8rem; font-weight: bold; color: #047857;">Likely Credible News</div>
-                            <div style="font-size: 1rem; color: #4B5563;">Confidence: {1-probability:.1%}</div>
-                        </div>
-                    </div>
-                    """, unsafe_allow_html=True)
+                # Analyze credibility
+                metrics, risk_factors = analyze_text_credibility(news_text)
                 
-                st.progress(probability if prediction == 1 else 1-probability)
+                # Make prediction
+                prediction, probability, clean_text = predict_news(news_text, model, vectorizer)
                 
-                st.markdown('<h3 class="subheader">Risk Factors</h3>', unsafe_allow_html=True)
-                if risk_factors:
-                    for factor in risk_factors:
-                        st.warning(factor)
-                else:
-                    st.success("No significant risk factors detected in this text.")
-            
-            with col2:
-                st.markdown('<h3 class="subheader">Text Metrics</h3>', unsafe_allow_html=True)
+                if prediction is None:
+                    st.error("Failed to process the text. Please try again.")
+                    st.stop()
                 
-                metrics_df = pd.DataFrame(list(metrics.items()), columns=['Metric', 'Value'])
-                st.dataframe(metrics_df, use_container_width=True, hide_index=True)
+                # Display results
+                col1, col2 = st.columns([3, 2])
                 
-                st.markdown('<h3 class="subheader">Word Cloud</h3>', unsafe_allow_html=True)
-                
-                # Create word cloud
-                try:
-                    from wordcloud import WordCloud
+                with col1:
+                    st.markdown('<h3 class="subheader">Prediction Result</h3>', unsafe_allow_html=True)
                     
-                    wordcloud = WordCloud(width=400, height=200, background_color='white', 
-                                         colormap='viridis', max_words=50).generate(clean_text)
+                    if prediction == 1:
+                        st.markdown(f"""
+                        <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+                            <div style="font-size: 3rem; margin-right: 1rem;">🚨</div>
+                            <div>
+                                <div style="font-size: 1.8rem; font-weight: bold; color: #B91C1C;">Likely Fake News</div>
+                                <div style="font-size: 1rem; color: #4B5563;">Confidence: {probability:.1%}</div>
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    else:
+                        st.markdown(f"""
+                        <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+                            <div style="font-size: 3rem; margin-right: 1rem;">✅</div>
+                            <div>
+                                <div style="font-size: 1.8rem; font-weight: bold; color: #047857;">Likely Credible News</div>
+                                <div style="font-size: 1rem; color: #4B5563;">Confidence: {1-probability:.1%}</div>
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
                     
-                    fig, ax = plt.subplots(figsize=(10, 5))
-                    ax.imshow(wordcloud, interpolation='bilinear')
-                    ax.axis('off')
-                    st.pyplot(fig)
-                except ImportError:
-                    st.info("WordCloud package not available. Install it for word cloud visualization.")
-            
-            # Show processing details
-            with st.expander("See text processing details"):
-                st.markdown("#### Original Text")
-                st.write(news_text)
+                    st.progress(probability if prediction == 1 else 1-probability)
+                    
+                    st.markdown('<h3 class="subheader">Risk Factors</h3>', unsafe_allow_html=True)
+                    if risk_factors:
+                        for factor in risk_factors:
+                            st.warning(factor)
+                    else:
+                        st.success("No significant risk factors detected in this text.")
                 
-                st.markdown("#### Preprocessed Text")
-                st.write(clean_text)
+                with col2:
+                    st.markdown('<h3 class="subheader">Text Metrics</h3>', unsafe_allow_html=True)
+                    
+                    metrics_df = pd.DataFrame(list(metrics.items()), columns=['Metric', 'Value'])
+                    st.dataframe(metrics_df, use_container_width=True, hide_index=True)
+                    
+                    st.markdown('<h3 class="subheader">Word Cloud</h3>', unsafe_allow_html=True)
+                    
+                    if WORDCLOUD_AVAILABLE and clean_text:
+                        wordcloud = WordCloud(width=400, height=200, background_color='white', 
+                                             colormap='viridis', max_words=50).generate(clean_text)
+                        
+                        fig, ax = plt.subplots(figsize=(10, 5))
+                        ax.imshow(wordcloud, interpolation='bilinear')
+                        ax.axis('off')
+                        st.pyplot(fig)
+                    else:
+                        st.info("Word cloud visualization unavailable. Install 'wordcloud' package or ensure valid text input.")
                 
-                st.markdown("#### Common Signs of Fake News")
-                st.markdown("""
-                - Excessive use of ALL CAPS and exclamation points (!!!)
-                - Emotional and sensationalist language
-                - Absence of sources or references
-                - Extreme claims without specific evidence
-                - Unidentified or anonymous sources
-                - Spelling and grammatical errors
-                - Appeal to confirm existing biases
-                """)
+                # Show processing details
+                with st.expander("See text processing details"):
+                    st.markdown("#### Original Text")
+                    st.write(news_text)
+                    
+                    st.markdown("#### Preprocessed Text")
+                    st.write(clean_text)
+                    
+                    st.markdown("#### Common Signs of Fake News")
+                    st.markdown("""
+                    - Excessive use of ALL CAPS and exclamation points (!!!)
+                    - Emotional and sensationalist language
+                    - Absence of sources or references
+                    - Extreme claims without specific evidence
+                    - Unidentified or anonymous sources
+                    - Spelling and grammatical errors
+                    - Appeal to confirm existing biases
+                    """)
 
 with tabs[1]:  # Dataset Explorer
     st.markdown('<h2 class="subheader">Dataset Explorer</h2>', unsafe_allow_html=True)
@@ -452,6 +478,7 @@ with tabs[1]:  # Dataset Explorer
     with col2:
         use_example = st.checkbox("Use example dataset", value=not bool(uploaded_file))
     
+    df = None
     if uploaded_file is not None:
         try:
             df = pd.read_csv(uploaded_file)
@@ -465,11 +492,11 @@ with tabs[1]:  # Dataset Explorer
             df = None
     elif use_example:
         df = get_example_dataset()
-        if df is not None:
+        if not df.empty:
             st.success(f"Example dataset loaded: {df.shape[0]} rows and {df.shape[1]} columns")
-    else:
-        df = None
-        st.info("Please upload a dataset or select 'Use example dataset'")
+        else:
+            df = None
+            st.error("Failed to load example dataset.")
     
     if df is not None:
         # Add additional features for analysis
@@ -508,7 +535,6 @@ with tabs[1]:  # Dataset Explorer
             
             st.markdown('<h3 class="subheader">Column Information</h3>', unsafe_allow_html=True)
             
-            # Column info
             col_info = pd.DataFrame({
                 'Column': df.columns,
                 'Type': df.dtypes,
@@ -518,7 +544,6 @@ with tabs[1]:  # Dataset Explorer
             })
             st.dataframe(col_info, use_container_width=True, hide_index=True)
             
-            # Download dataset
             st.markdown(get_download_link(df, "fake_news_dataset.csv", "Download Dataset"), unsafe_allow_html=True)
         
         with data_tabs[1]:  # Visualizations
@@ -527,7 +552,6 @@ with tabs[1]:  # Dataset Explorer
             viz_col1, viz_col2 = st.columns(2)
             
             with viz_col1:
-                # Category Distribution
                 if 'category' in df.columns:
                     st.markdown("#### News Category Distribution")
                     fig, ax = plt.subplots(figsize=(10, 6))
@@ -538,15 +562,12 @@ with tabs[1]:  # Dataset Explorer
                     plt.tight_layout()
                     st.pyplot(fig)
                     
-                    # Download option
                     st.markdown(get_figure_download_link(fig, "category_distribution.png", "Download Plot"), 
                                unsafe_allow_html=True)
                 
-                # Text Length Distribution
                 st.markdown("#### Text Length Distribution")
                 fig, ax = plt.subplots(figsize=(10, 6))
                 
-                # Group by label and plot histograms
                 for label in df['label'].unique():
                     subset = df[df['label'] == label]
                     sns.histplot(data=subset, x='text_length', kde=True, 
@@ -558,12 +579,10 @@ with tabs[1]:  # Dataset Explorer
                 plt.tight_layout()
                 st.pyplot(fig)
                 
-                # Download option
                 st.markdown(get_figure_download_link(fig, "text_length_distribution.png", "Download Plot"), 
                            unsafe_allow_html=True)
             
             with viz_col2:
-                # Label Distribution
                 st.markdown("#### News Label Distribution")
                 fig, ax = plt.subplots(figsize=(10, 6))
                 label_counts = df['label'].value_counts()
@@ -574,12 +593,10 @@ with tabs[1]:  # Dataset Explorer
                 plt.tight_layout()
                 st.pyplot(fig)
                 
-                # Download option
                 st.markdown(get_figure_download_link(fig, "label_distribution.png", "Download Plot"), 
                            unsafe_allow_html=True)
                 
                 if 'date' in df.columns:
-                    # Try to convert to datetime if not already
                     if df['date'].dtype != 'datetime64[ns]':
                         df['date'] = pd.to_datetime(df['date'], errors='coerce')
                     
@@ -587,11 +604,9 @@ with tabs[1]:  # Dataset Explorer
                         st.markdown("#### Publication Trends")
                         fig, ax = plt.subplots(figsize=(10, 6))
                         
-                        # Group by month and label
                         df['month'] = df['date'].dt.to_period('M')
                         monthly_counts = df.groupby(['month', 'label']).size().unstack()
                         
-                        # Plot
                         monthly_counts.plot(kind='line', marker='o', ax=ax)
                         plt.title('News Publication Trends by Month')
                         plt.xlabel('Month')
@@ -599,29 +614,25 @@ with tabs[1]:  # Dataset Explorer
                         plt.tight_layout()
                         st.pyplot(fig)
                         
-                        # Download option
                         st.markdown(get_figure_download_link(fig, "publication_trends.png", "Download Plot"), 
                                    unsafe_allow_html=True)
+                    else:
+                        st.info("No valid date data available for publication trends.")
         
         with data_tabs[2]:  # Text Analysis
             st.markdown('<h3 class="subheader">Text Content Analysis</h3>', unsafe_allow_html=True)
             
-            # Sample size
             sample_size = min(1000, len(df))
-            text_sample = df.sample(sample_size)
+            text_sample = df.sample(sample_size, random_state=42)
             
-            # Process text sample
             st.markdown(f"Analyzing a sample of {sample_size} articles...")
             
             with st.spinner("Processing text..."):
-                # Preprocess text
                 text_sample['clean_text'] = text_sample['text'].apply(lambda x: preprocess_text(str(x)))
                 
-                # Get word counts
                 all_words = ' '.join(text_sample['clean_text']).split()
                 word_counts = pd.Series(all_words).value_counts()
                 
-                # Split by label
                 fake_words = ' '.join(text_sample[text_sample['label'] == 'fake']['clean_text']).split()
                 real_words = ' '.join(text_sample[text_sample['label'] == 'true']['clean_text']).split()
                 
@@ -641,24 +652,20 @@ with tabs[1]:  # Dataset Explorer
                 plt.tight_layout()
                 st.pyplot(fig)
                 
-                # Download option
                 st.markdown(get_figure_download_link(fig, "top_words.png", "Download Plot"), 
                            unsafe_allow_html=True)
             
             with col2:
                 st.markdown("#### Word Clouds by Label")
                 
-                # Create tabs for fake and real news word clouds
                 wc_tabs = st.tabs(["Fake News", "Real News"])
                 
-                try:
-                    from wordcloud import WordCloud
-                    
+                if WORDCLOUD_AVAILABLE:
                     with wc_tabs[0]:
                         if len(fake_words) > 0:
                             fake_text = ' '.join(fake_words)
                             wordcloud = WordCloud(width=800, height=400, background_color='white', 
-                                                colormap='Reds', max_words=100).generate(fake_text)
+                                                 colormap='Reds', max_words=100).generate(fake_text)
                             
                             fig, ax = plt.subplots(figsize=(10, 6))
                             ax.imshow(wordcloud, interpolation='bilinear')
@@ -672,7 +679,7 @@ with tabs[1]:  # Dataset Explorer
                         if len(real_words) > 0:
                             real_text = ' '.join(real_words)
                             wordcloud = WordCloud(width=800, height=400, background_color='white', 
-                                                colormap='Blues', max_words=100).generate(real_text)
+                                                 colormap='Blues', max_words=100).generate(real_text)
                             
                             fig, ax = plt.subplots(figsize=(10, 6))
                             ax.imshow(wordcloud, interpolation='bilinear')
@@ -681,10 +688,9 @@ with tabs[1]:  # Dataset Explorer
                             st.pyplot(fig)
                         else:
                             st.info("No real news articles in the sample.")
-                except ImportError:
-                    st.error("WordCloud package not installed. Install it for word cloud visualization.")
+                else:
+                    st.info("Word cloud visualization unavailable. Install 'wordcloud' package.")
             
-            # N-gram analysis
             st.markdown("#### N-gram Analysis")
             ngram_type = st.radio("Select n-gram type:", ["Unigrams (1-gram)", "Bigrams (2-gram)", "Trigrams (3-gram)"], horizontal=True)
             n = 1 if "Unigrams" in ngram_type else (2 if "Bigrams" in ngram_type else 3)
@@ -695,7 +701,7 @@ with tabs[1]:  # Dataset Explorer
                 st.markdown(f"##### Top {n}-grams in Fake News")
                 if len(fake_words) >= n:
                     fake_ngrams = pd.Series(nltk.ngrams(fake_words, n)).value_counts().head(10)
-                    st.dataframe(fake_ngrams, use_container_width=True)
+                    st.dataframe(pd.DataFrame({'N-gram': [' '.join(ngram) for ngram in fake_ngrams.index], 'Count': fake_ngrams.values}), use_container_width=True)
                 else:
                     st.info(f"Not enough fake news articles for {n}-gram analysis")
             
@@ -703,7 +709,7 @@ with tabs[1]:  # Dataset Explorer
                 st.markdown(f"##### Top {n}-grams in Real News")
                 if len(real_words) >= n:
                     real_ngrams = pd.Series(nltk.ngrams(real_words, n)).value_counts().head(10)
-                    st.dataframe(real_ngrams, use_container_width=True)
+                    st.dataframe(pd.DataFrame({'N-gram': [' '.join(ngram) for ngram in real_ngrams.index], 'Count': real_ngrams.values}), use_container_width=True)
                 else:
                     st.info(f"Not enough real news articles for {n}-gram analysis")
 
@@ -726,40 +732,36 @@ with tabs[2]:  # Batch Processing
             else:
                 st.success(f"File loaded successfully: {batch_df.shape[0]} articles")
                 
-                # Process in batches
                 if st.button("Analyze Batch", type="primary"):
                     progress_bar = st.progress(0)
                     status_text = st.empty()
                     
+                    # Vectorized preprocessing
+                    batch_df['clean_text'] = batch_df['text'].apply(lambda x: preprocess_text(str(x)))
+                    text_vectors = vectorizer.transform(batch_df['clean_text'])
+                    predictions = model.predict(text_vectors)
+                    probabilities = model.predict_proba(text_vectors)[:, 1]
+                    
                     results = []
                     total = len(batch_df)
                     
-                    for i, row in batch_df.iterrows():
-                        text = str(row['text'])
-                        
-                        # Make prediction
-                        prediction, probability, _ = predict_news(text, model, vectorizer)
-                        
+                    for i, (text, pred, prob) in enumerate(zip(batch_df['text'], predictions, probabilities)):
                         results.append({
                             'text': text[:200] + "..." if len(text) > 200 else text,
-                            'prediction': 'Fake' if prediction == 1 else 'Real',
-                            'probability': probability if prediction == 1 else 1-probability,
-                            'confidence': 'High' if (probability if prediction == 1 else 1-probability) > 0.75 else 'Medium' if (probability if prediction == 1 else 1-probability) > 0.5 else 'Low'
+                            'prediction': 'Fake' if pred == 1 else 'Real',
+                            'probability': prob if pred == 1 else 1-prob,
+                            'confidence': 'High' if (prob if pred == 1 else 1-prob) > 0.75 else 'Medium' if (prob if pred == 1 else 1-prob) > 0.5 else 'Low'
                         })
                         
-                        # Update progress
                         progress = (i + 1) / total
                         progress_bar.progress(progress)
                         status_text.text(f"Processing {i+1} of {total} articles...")
                     
-                    # Create results dataframe
                     results_df = pd.DataFrame(results)
                     
-                    # Show results
                     st.markdown('<h3 class="subheader">Batch Results</h3>', unsafe_allow_html=True)
                     st.dataframe(results_df, use_container_width=True)
                     
-                    # Summary statistics
                     st.markdown('<h3 class="subheader">Summary Statistics</h3>', unsafe_allow_html=True)
                     
                     col1, col2, col3 = st.columns(3)
@@ -785,7 +787,6 @@ with tabs[2]:  # Batch Processing
                                    f'<div class="metric-label">Avg Confidence</div>'
                                    '</div>', unsafe_allow_html=True)
                     
-                    # Download results
                     st.markdown(get_download_link(results_df, "batch_results.csv", "Download Results"), unsafe_allow_html=True)
         except Exception as e:
             st.error(f"Error processing batch file: {str(e)}")
