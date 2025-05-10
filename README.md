@@ -206,18 +206,23 @@ fake-news-detection-system/
 * Real-time Data: Integrate APIs to fetch news articles for analysis.
 
 * Multilingual Support: Extend preprocessing and modeling to support non-English languages.
-* 
+
 * Performance Optimization: Parallelize batch processing for faster analysis.
-* 
+
 * Accessibility: Add support for screen readers and improve UI contrast.
 
 # Contributing
 
 * Contributions are welcome! To contribute:
+
 * Fork the repository.
+
 * Create a new branch (git checkout -b feature/your-feature).
+
 * Commit your changes (git commit -m "Add your feature").
+
 * Push to the branch (git push origin feature/your-feature).
+
 * Open a pull request.
 
 
