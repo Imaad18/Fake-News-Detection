@@ -1,3 +1,7 @@
+![image](https://github.com/user-attachments/assets/72f447d7-3be8-418f-9fa0-a1ba8e4b2068)
+
+
+
 # Fake News Detection System
 
 # Overview
@@ -199,17 +203,17 @@ fake-news-detection-system/
 
 # Future Improvements
 
-* Enhanced Model: Use more advanced models (e.g., BERT, LSTM) for better accuracy.
+* **Enhanced Model:** Use more advanced models (e.g., BERT, LSTM) for better accuracy.
 
-* Pre-trained Model: Save and load a pre-trained model to avoid runtime training.
+* **Pre-trained Model:** Save and load a pre-trained model to avoid runtime training.
 
-* Real-time Data: Integrate APIs to fetch news articles for analysis.
+* **Real-time Data:** Integrate APIs to fetch news articles for analysis.
 
-* Multilingual Support: Extend preprocessing and modeling to support non-English languages.
+* **Multilingual Support:** Extend preprocessing and modeling to support non-English languages.
 
-* Performance Optimization: Parallelize batch processing for faster analysis.
+* **Performance Optimization:** Parallelize batch processing for faster analysis.
 
-* Accessibility: Add support for screen readers and improve UI contrast.
+* **Accessibility:** Add support for screen readers and improve UI contrast.
 
 # Contributing
 
