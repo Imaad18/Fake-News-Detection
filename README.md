@@ -65,19 +65,28 @@
 # Python Libraries:
 
 * streamlit: For the web-based user interface.
+
 * nltk: For text preprocessing (lemmatization, stopwords).
+
 * scikit-learn: For TF-IDF vectorization and logistic regression.
+
 * pandas: For data manipulation.
+
 * matplotlib and seaborn: For visualizations.
+
 * wordcloud (optional): For word cloud visualizations.
+
 * numpy: For numerical operations.
+
 * joblib: For model persistence.
+
 * base64 and io: For file downloads.
 
 
 # Machine Learning:
 
 * Logistic Regression model trained on TF-IDF features.
+
 * Preprocesses text by removing special characters, lemmatizing, and filtering stopwords.
 
 
