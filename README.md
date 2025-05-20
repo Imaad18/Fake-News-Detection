@@ -113,28 +113,44 @@
 # Steps
 
 Clone the Repository:
+
+```bash
 git clone https://github.com/your-username/fake-news-detection-system.git
 cd fake-news-detection-system
-
+```
 
 # Create a Virtual Environment (recommended):
+
+```bash
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
-
+```
 
 # Install Dependencies:
+
+```bash
 pip install -r requirements.txt
+```
 
 The requirements.txt should include:
-streamlit==1.38.0
-numpy==1.26.4
-pandas==2.2.2
-matplotlib==3.9.2
-seaborn==0.13.2
-nltk==3.8.1
-scikit-learn==1.5.1
-joblib==1.4.2
-wordcloud==1.9.3
+
+* streamlit==1.38.0
+
+* numpy==1.26.4
+
+* pandas==2.2.2
+
+* matplotlib==3.9.2
+
+* seaborn==0.13.2
+
+* nltk==3.8.1
+
+* scikit-learn==1.5.1
+
+* joblib==1.4.2
+
+* wordcloud==1.9.3
 
 
 Download NLTK Resources:Run the following Python script to download required NLTK data:
