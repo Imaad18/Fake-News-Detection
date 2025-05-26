@@ -48,83 +48,257 @@ else:
     lemmatizer = None
     stop_words = set()
 
-# Custom CSS
-st.markdown("""
-<style>
-    .main-header {
-        font-size: 2.5rem;
-        color: #1E3A8A;
-        text-align: center;
-        margin-bottom: 1rem;
-    }
-    .subheader {
-        font-size: 1.5rem;
-        color: #1E3A8A;
-        margin-top: 1rem;
-        margin-bottom: 0.5rem;
-    }
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 24px;
-    }
-    .stTabs [data-baseweb="tab"] {
-        height: 50px;
-        white-space: pre-wrap;
-        background-color: #F0F7FF;
-        border-radius: 4px 4px 0px 0px;
-        gap: 1px;
-        padding-top: 10px;
-        padding-bottom: 10px;
-    }
-    .stTabs [aria-selected="true"] {
-        background-color: #1E3A8A;
-        color: white;
-    }
-    .metric-card {
-        background-color: #F0F7FF;
-        border-radius: 0.5rem;
-        padding: 1rem;
-        box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
-    }
-    .metric-label {
-        font-size: 0.8rem;
-        color: #4B5563;
-    }
-    .metric-value {
-        font-size: 1.5rem;
-        font-weight: bold;
-        color: #1E3A8A;
-    }
-    .fake-tag {
-        background-color: #FEE2E2;
-        color: #B91C1C;
-        padding: 0.25rem 0.5rem;
-        border-radius: 0.25rem;
-        font-weight: bold;
-    }
-    .real-tag {
-        background-color: #D1FAE5;
-        color: #047857;
-        padding: 0.25rem 0.5rem;
-        border-radius: 0.25rem;
-        font-weight: bold;
-    }
-    .stProgress > div > div > div > div {
-        background-color: #1E3A8A;
-    }
-    .btn {
-        display: inline-block;
-        padding: 0.5rem 1rem;
-        background-color: #1E3A8A;
-        color: white;
-        text-decoration: none;
-        border-radius: 0.25rem;
-        margin-top: 0.5rem;
-    }
-    .btn:hover {
-        background-color: #3B82F6;
-    }
-</style>
-""", unsafe_allow_html=True)
+# Inject modern CSS styling
+def inject_css():
+    st.markdown("""
+    <style>
+        /* Base styles */
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.6;
+            color: #1a1a1a;
+        }
+        
+        /* Header styles */
+        .main-header {
+            font-size: 2.5rem;
+            color: #1E3A8A;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(90deg, #1E3A8A 0%, #3B82F6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .subheader {
+            font-size: 1.5rem;
+            color: #1E3A8A;
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+        
+        /* Tab styles */
+        .stTabs [data-baseweb="tab-list"] {
+            gap: 12px;
+            padding: 0 4px;
+        }
+        
+        .stTabs [data-baseweb="tab"] {
+            height: 50px;
+            white-space: pre-wrap;
+            background-color: #F8FAFC;
+            border-radius: 12px;
+            gap: 1px;
+            padding: 12px 24px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            border: 1px solid #E2E8F0;
+            margin: 4px 0;
+        }
+        
+        .stTabs [data-baseweb="tab"]:hover {
+            background-color: #EFF6FF;
+            transform: translateY(-2px);
+        }
+        
+        .stTabs [aria-selected="true"] {
+            background-color: #1E3A8A;
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Card styles */
+        .metric-card {
+            background-color: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid #E2E8F0;
+            transition: all 0.3s ease;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .metric-label {
+            font-size: 0.9rem;
+            color: #64748B;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+        
+        .metric-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #1E3A8A;
+            line-height: 1.2;
+        }
+        
+        /* Tag styles */
+        .fake-tag {
+            background-color: #FEE2E2;
+            color: #B91C1C;
+            padding: 0.375rem 0.75rem;
+            border-radius: 8px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            font-size: 0.875rem;
+        }
+        
+        .real-tag {
+            background-color: #D1FAE5;
+            color: #047857;
+            padding: 0.375rem 0.75rem;
+            border-radius: 8px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            font-size: 0.875rem;
+        }
+        
+        /* Button styles */
+        .stButton>button {
+            border-radius: 12px;
+            padding: 0.5rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            border: none;
+        }
+        
+        .stButton>button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Progress bar */
+        .stProgress > div > div > div > div {
+            background-color: #1E3A8A;
+            border-radius: 12px;
+        }
+        
+        /* Dataframe styling */
+        .stDataFrame {
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Text input */
+        .stTextArea textarea {
+            border-radius: 12px;
+            padding: 1rem;
+            border: 1px solid #E2E8F0;
+        }
+        
+        /* Selectbox */
+        .stSelectbox select {
+            border-radius: 12px;
+            padding: 0.5rem 1rem;
+        }
+        
+        /* Radio buttons */
+        .stRadio [role="radiogroup"] {
+            gap: 1rem;
+        }
+        
+        .stRadio [role="radio"] {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: 1px solid #E2E8F0;
+        }
+        
+        .stRadio [role="radio"][aria-checked="true"] {
+            background-color: #EFF6FF;
+            border-color: #1E3A8A;
+            color: #1E3A8A;
+            font-weight: 500;
+        }
+        
+        /* Expander */
+        .stExpander {
+            border-radius: 12px;
+            border: 1px solid #E2E8F0;
+        }
+        
+        /* Custom button for downloads */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.625rem 1.25rem;
+            background-color: #1E3A8A;
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            margin-top: 0.5rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+        
+        .btn:hover {
+            background-color: #3B82F6;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Word cloud container */
+        .wordcloud-container {
+            background: white;
+            border-radius: 12px;
+            padding: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid #E2E8F0;
+        }
+        
+        /* Better visibility for text */
+        .stMarkdown p, .stMarkdown li, .stMarkdown ol {
+            color: #1a1a1a;
+            font-size: 1rem;
+            line-height: 1.7;
+        }
+        
+        /* Code blocks */
+        .stCodeBlock {
+            border-radius: 12px;
+        }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            color: #64748B;
+            font-size: 0.875rem;
+            padding: 1.5rem 0;
+            margin-top: 2rem;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .main-header {
+                font-size: 2rem;
+            }
+            
+            .subheader {
+                font-size: 1.25rem;
+            }
+            
+            .metric-value {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
+# Call the CSS injection function
+inject_css()
 
 # Preprocess text: remove special characters, stopwords, and lemmatize
 def preprocess_text(text, remove_stopwords=True):
@@ -209,7 +383,7 @@ def get_example_dataset():
                 'Climate scientists report that global average temperatures in April were the highest ever recorded...',
                 'A hiker in Yellowstone National Park claims to have captured clear footage of Bigfoot...',
                 'A group of doctors is recommending that people eliminate all forms of sugar from their diet...',
-                'NASA’s rover has confirmed the presence of liquid water on the Martian surface...',
+                'NASA's rover has confirmed the presence of liquid water on the Martian surface...',
                 'Researchers using ground-penetrating radar have allegedly discovered a massive pyramid structure...',
                 'Health inspectors found numerous violations including rodent infestations...'
             ],
@@ -344,7 +518,7 @@ with tabs[0]:  # News Analyzer
         example_texts = {
             "Climate Change Report": "New scientific research confirms that global temperatures have risen by 1.1°C since pre-industrial times...",
             "Celebrity Scandal": "SHOCKING NEWS!!! Famous actor caught in MASSIVE SCANDAL!! Anonymous sources claim...",
-            "Medical Breakthrough": "Scientists at Stanford University have developed a new treatment for Alzheimer’s disease...",
+            "Medical Breakthrough": "Scientists at Stanford University have developed a new treatment for Alzheimer's disease...",
             "Political Allegations": "CORRUPT POLITICIAN EXPOSED! Secret documents reveal the senator has been accepting illegal donations..."
         }
         
@@ -372,8 +546,8 @@ with tabs[0]:  # News Analyzer
                     
                     if prediction == 1:
                         st.markdown(f"""
-                        <div style="display: flex; align-items: center; margin-bottom: 1rem;">
-                            <div style="font-size: 3rem; margin-right: 1rem;">🚨</div>
+                        <div style="display: flex; align-items: center; margin-bottom: 1.5rem;">
+                            <div style="font-size: 3rem; margin-right: 1.5rem;">🚨</div>
                             <div>
                                 <div style="font-size: 1.8rem; font-weight: bold; color: #B91C1C;">Likely Fake News</div>
                                 <div style="font-size: 1rem; color: #4B5563;">Confidence: {probability:.1%}</div>
@@ -382,8 +556,8 @@ with tabs[0]:  # News Analyzer
                         """, unsafe_allow_html=True)
                     else:
                         st.markdown(f"""
-                        <div style="display: flex; align-items: center; margin-bottom: 1rem;">
-                            <div style="font-size: 3rem; margin-right: 1rem;">✅</div>
+                        <div style="display: flex; align-items: center; margin-bottom: 1.5rem;">
+                            <div style="font-size: 3rem; margin-right: 1.5rem;">✅</div>
                             <div>
                                 <div style="font-size: 1.8rem; font-weight: bold; color: #047857;">Likely Credible News</div>
                                 <div style="font-size: 1rem; color: #4B5563;">Confidence: {1-probability:.1%}</div>
@@ -832,7 +1006,7 @@ with tabs[3]:  # Educational Resources
 # Footer
 st.markdown("---")
 st.markdown("""
-<div style="text-align: center; color: #6B7280; font-size: 0.9rem;">
+<div class="footer">
     <p>Fake News Detection System • Powered by Machine Learning • For educational purposes only</p>
 </div>
 """, unsafe_allow_html=True)
