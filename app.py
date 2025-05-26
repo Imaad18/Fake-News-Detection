@@ -383,7 +383,7 @@ def get_example_dataset():
                 'Climate scientists report that global average temperatures in April were the highest ever recorded...',
                 'A hiker in Yellowstone National Park claims to have captured clear footage of Bigfoot...',
                 'A group of doctors is recommending that people eliminate all forms of sugar from their diet...',
-                'NASA's rover has confirmed the presence of liquid water on the Martian surface...',
+                "NASA's rover has confirmed the presence of liquid water on the Martian surface...",
                 'Researchers using ground-penetrating radar have allegedly discovered a massive pyramid structure...',
                 'Health inspectors found numerous violations including rodent infestations...'
             ],
